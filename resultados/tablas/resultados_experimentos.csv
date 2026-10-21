@@ -1,0 +1,6 @@
+Herramienta,Técnica,Tiempo (s),Memoria (MB),Tamaño final (MB),Reducción (%),Cambio estadístico
+Datashader,Binning,,,,,
+Vaex,Binning,,,,,
+DuckDB,Agregación,,,,,
+Polars,Agregación,,,,,
+Scikit-Learn,Discretización,,,,,

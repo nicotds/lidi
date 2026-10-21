@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ipynb_checkpoints/
+data/*.parquet
+resultados/actividad3/datos_cuantizados/

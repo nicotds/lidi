@@ -1,0 +1,6 @@
+Herramienta,Técnica evaluada,Rendimiento,Reducción,Conservación de información
+Datashader,Binning 2D (Cuadrícula),Rápido (~0.1 - 0.5s),5M filas → Grid 100x100 (99.8% condesado),Conserva densidad visual e histograma 2D
+Vaex,Binning 2D (binby),Muy rápido / Out-of-Core (~0.1s),5M filas → Grid 100x100 (99.8% condesado),Conserva conteos y densidad visual 2D
+DuckDB,Agregación en deciles (ntile),Rápido en lectura masiva (~0.2s),5M filas → 10 deciles resumidos,"Conserva medias, mín, máx y distribución por tramos"
+Polars,Agregación categórica y Float32,Ultra rápido Eager/Lazy (~0.05 - 0.2s),5M filas → 5 categorías / -50% memoria Float32,Float32 conserva métricas con error <0.001%
+Scikit-Learn,Discretización (KBinsDiscretizer),Moderado / según estrategia (0.3 - 1.0s),5M continuos → 10 bins discretos,Quantile/Uniform conservan forma aproximada

@@ -1,0 +1,6 @@
+Herramienta,Tecnica,Tiempo
+Datashader,Binning 2D,0.5
+Vaex,Binning 2D,0.8
+DuckDB,Cuantiles/deciles,0.3
+Polars,Agregacion,0.2
+Scikit-Learn,Discretizacion,0.387415
