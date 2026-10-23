@@ -8,18 +8,24 @@ Convenciones fijadas
 3. Fuera de rango: menores al mínimo -> bin 0; mayores al máximo -> último bin.
    Se informa con la máscara booleana `fuera_rango`.
 4. Columna constante: un solo bin (n_bins_real = 1), representante = el valor.
+   Es la única excepción a "límites estrictamente crecientes": limites = [v, v].
    Nunca hay división por cero.
 5. Límites repetidos (cuantiles): se eliminan con np.unique; n_bins_real puede
    ser menor que n_bins_solicitado.
 6. Representantes: se guardan los tres (punto_medio, media, mediana).
    Un bin vacío usa el punto medio.
 7. Códigos como int16 con signo (por el -1).
-8. +-inf se excluyen del ajuste.
+8. +-inf se excluyen del ajuste; al transformar, +inf cae en el último bin y
+   -inf en el bin 0, ambos marcados como fuera_rango.
 9. Columna sin valores finitos: ValueError con mensaje claro.
+10. Limitación: los límites uniformes se calculan con np.linspace; con otros
+    datos, el redondeo en coma flotante puede mover un valor que cae justo en
+    un borde al bin vecino.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
+
 import numpy as np
 import pandas as pd
 
@@ -34,7 +40,7 @@ class Cuantizador:
     estrategia: str
     n_bins_solicitado: int
     n_bins_real: int
-    limites: np.ndarray            # tamaño n_bins_real + 1, estrictamente creciente
+    limites: np.ndarray            # tamaño n_bins_real + 1
     representantes: dict           # {"punto_medio"|"media"|"mediana": array de tamaño n_bins_real}
     columna: str | None
     n_ajuste: int                  # valores finitos usados para ajustar
@@ -49,18 +55,58 @@ class Cuantizador:
         raise NotImplementedError
 
 
+def _a_float(x) -> np.ndarray:
+    """Convierte lista, array o Series a un ndarray float64 unidimensional."""
+    if isinstance(x, (pd.Series, pd.Index)):
+        arr = x.astype("float64").to_numpy()
+    else:
+        arr = np.asarray(x, dtype="float64")
+    if arr.ndim != 1:
+        raise ValueError(f"se esperaba una entrada unidimensional, llegó con {arr.ndim} dimensiones")
+    return arr
+
+
 def ajustar_cuantizador(x, estrategia: str = "uniforme", n_bins: int = 10,
                         columna: str | None = None) -> Cuantizador:
-    """Ajusta límites y los tres representantes.
+    """Ajusta límites y representantes.
 
     Parámetros: x (lista, array o Series), estrategia (ESTRATEGIAS),
-    n_bins (>= 1), columna (nombre opcional).
+    n_bins (entero >= 1), columna (nombre opcional).
     Retorna: Cuantizador.
     Excluye NaN y +-inf del ajuste.
+    Columna constante: 1 bin con limites = [v, v].
     Lanza ValueError si n_bins < 1, si la estrategia no existe o si no hay
     valores finitos.
     """
-    raise NotImplementedError
+    if isinstance(n_bins, bool) or not isinstance(n_bins, (int, np.integer)) or n_bins < 1:
+        raise ValueError(f"n_bins debe ser un entero >= 1, se recibió {n_bins!r}")
+    if estrategia not in ESTRATEGIAS:
+        raise ValueError(f"estrategia {estrategia!r} no válida; opciones: {ESTRATEGIAS}")
+
+    x = _a_float(x)
+    validos = x[np.isfinite(x)]
+    if validos.size == 0:
+        raise ValueError("la columna no tiene valores finitos")
+
+    vmin, vmax = float(validos.min()), float(validos.max())
+
+    if estrategia == "uniforme":
+        if vmin == vmax:                       # columna constante
+            limites = np.array([vmin, vmax], dtype="float64")
+        else:
+            limites = np.linspace(vmin, vmax, int(n_bins) + 1)
+    else:
+        raise NotImplementedError("la estrategia 'cuantiles' se implementa el 28/10")
+
+    return Cuantizador(
+        estrategia=estrategia,
+        n_bins_solicitado=int(n_bins),
+        n_bins_real=len(limites) - 1,
+        limites=limites,
+        representantes={},                     # el punto medio se llena el 26/10
+        columna=columna,
+        n_ajuste=int(validos.size),
+    )
 
 
 def transformar(x, modelo: Cuantizador, devolver_diagnostico: bool = False):
@@ -69,7 +115,17 @@ def transformar(x, modelo: Cuantizador, devolver_diagnostico: bool = False):
     Con devolver_diagnostico=True devuelve (codigos, {"fuera_rango": mascara,
     "es_nan": mascara}). Conserva la longitud de la entrada.
     """
-    raise NotImplementedError
+    x = _a_float(x)
+    es_nan = np.isnan(x)
+    codigos = np.searchsorted(modelo.limites[1:-1], x, side="right")
+    codigos[es_nan] = -1                       # searchsorted manda los NaN al último bin
+    codigos = codigos.astype(np.int16)
+
+    if not devolver_diagnostico:
+        return codigos
+
+    fuera_rango = (x < modelo.limites[0]) | (x > modelo.limites[-1])
+    return codigos, {"fuera_rango": fuera_rango, "es_nan": es_nan}
 
 
 def reconstruir(codigos, modelo: Cuantizador,
