@@ -11,7 +11,7 @@ Convenciones fijadas
    Es la única excepción a "límites estrictamente crecientes": limites = [v, v].
    Nunca hay división por cero.
 5. Límites repetidos (cuantiles): se eliminan con np.unique; n_bins_real puede
-   ser menor que n_bins_solicitado.
+   ser menor que n_bins_solicitado (p. ej. una columna con 70 % de ceros).
 6. Representantes: se guardan los tres (punto_medio, media, mediana).
    Un bin vacío usa el punto medio.
 7. Códigos como int16 con signo (por el -1).
@@ -21,6 +21,10 @@ Convenciones fijadas
 10. Limitación: los límites uniformes se calculan con np.linspace; con otros
     datos, el redondeo en coma flotante puede mover un valor que cae justo en
     un borde al bin vecino.
+11. Cuantiles: límites = np.quantile (interpolación lineal) con el primero
+    forzado al mínimo y el último al máximo.
+12. calcular_error ignora los pares no finitos (NaN o inf); los NaN deben
+    estar en las mismas posiciones en ambos arrays.
 """
 from __future__ import annotations
 
@@ -66,15 +70,44 @@ def _a_float(x) -> np.ndarray:
     return arr
 
 
+def _calcular_representantes(validos: np.ndarray, limites: np.ndarray) -> dict:
+    """Punto medio, media y mediana de cada bin (vectorizado, sin groupby).
+
+    `validos` son los valores finitos usados en el ajuste. Un bin vacío usa el
+    punto medio tanto en la media como en la mediana.
+    """
+    k = len(limites) - 1
+    punto_medio = (limites[:-1] + limites[1:]) / 2.0
+
+    # media por bin con bincount
+    codigos = np.searchsorted(limites[1:-1], validos, side="right")
+    cuenta = np.bincount(codigos, minlength=k)
+    suma = np.bincount(codigos, weights=validos, minlength=k)
+    media = np.where(cuenta > 0, suma / np.maximum(cuenta, 1), punto_medio)
+
+    # mediana por bin: ordenar una vez; cada bin es una porción contigua
+    ordenado = np.sort(validos)
+    inicios = np.searchsorted(ordenado, limites[1:-1], side="left")
+    bordes = np.concatenate(([0], inicios, [ordenado.size]))
+    mediana = punto_medio.copy()
+    for i in range(k):
+        if bordes[i + 1] > bordes[i]:
+            mediana[i] = np.median(ordenado[bordes[i]:bordes[i + 1]])
+
+    return {"punto_medio": punto_medio, "media": media, "mediana": mediana}
+
+
 def ajustar_cuantizador(x, estrategia: str = "uniforme", n_bins: int = 10,
                         columna: str | None = None) -> Cuantizador:
-    """Ajusta límites y representantes.
+    """Ajusta límites y los tres representantes.
 
     Parámetros: x (lista, array o Series), estrategia (ESTRATEGIAS),
     n_bins (entero >= 1), columna (nombre opcional).
-    Retorna: Cuantizador.
+    Retorna: Cuantizador con limites y representantes (punto_medio, media, mediana).
     Excluye NaN y +-inf del ajuste.
     Columna constante: 1 bin con limites = [v, v].
+    Cuantiles: los límites repetidos se eliminan, así que n_bins_real puede ser
+    menor que n_bins_solicitado.
     Lanza ValueError si n_bins < 1, si la estrategia no existe o si no hay
     valores finitos.
     """
@@ -95,15 +128,19 @@ def ajustar_cuantizador(x, estrategia: str = "uniforme", n_bins: int = 10,
             limites = np.array([vmin, vmax], dtype="float64")
         else:
             limites = np.linspace(vmin, vmax, int(n_bins) + 1)
-    else:
-        raise NotImplementedError("la estrategia 'cuantiles' se implementa el 28/10")
+    else:                                      # cuantiles
+        limites = np.quantile(validos, np.linspace(0.0, 1.0, int(n_bins) + 1))
+        limites[0], limites[-1] = vmin, vmax
+        limites = np.unique(limites)           # elimina repetidos y ordena
+        if limites.size < 2:                   # columna constante
+            limites = np.array([vmin, vmax], dtype="float64")
 
     return Cuantizador(
         estrategia=estrategia,
         n_bins_solicitado=int(n_bins),
         n_bins_real=len(limites) - 1,
         limites=limites,
-        representantes={},                     # el punto medio se llena el 26/10
+        representantes=_calcular_representantes(validos, limites),
         columna=columna,
         n_ajuste=int(validos.size),
     )
@@ -132,18 +169,58 @@ def reconstruir(codigos, modelo: Cuantizador,
                 representante: str = "punto_medio") -> np.ndarray:
     """Reemplaza cada código por su representante; -1 -> NaN.
 
-    Lanza ValueError si hay códigos < -1 o > n_bins_real - 1, o si el
-    representante no está en REPRESENTANTES.
+    Parámetros: codigos (enteros en [-1, n_bins_real - 1]), modelo, representante
+    ("punto_medio", "media" o "mediana").
+    Retorna: ndarray float64 de la misma longitud.
+    Lanza ValueError si hay códigos < -1 o > n_bins_real - 1, si no son enteros,
+    si el representante no está en REPRESENTANTES o si el modelo no los tiene.
     """
-    raise NotImplementedError
+    if representante not in REPRESENTANTES:
+        raise ValueError(f"representante {representante!r} no válido; opciones: {REPRESENTANTES}")
+    if representante not in modelo.representantes:
+        raise ValueError("el modelo no tiene representantes calculados; reajústalo con ajustar_cuantizador")
+
+    c = np.asarray(codigos)
+    if c.ndim != 1:
+        raise ValueError("los códigos deben ser unidimensionales")
+    if c.size and not np.issubdtype(c.dtype, np.integer):
+        raise ValueError(f"los códigos deben ser enteros, llegaron como {c.dtype}")
+    if c.size and (c.min() < -1 or c.max() > modelo.n_bins_real - 1):
+        raise ValueError(
+            f"códigos fuera de [-1, {modelo.n_bins_real - 1}]: min={c.min()}, max={c.max()}"
+        )
+
+    # NaN al final de la tabla: el índice -1 apunta a él sin condicionales
+    tabla = np.append(np.asarray(modelo.representantes[representante], dtype="float64"), np.nan)
+    return tabla[c.astype(np.int64)]
 
 
 def calcular_error(original, reconstruido) -> dict:
     """Devuelve {"mae", "rmse", "error_max", "n_validos"}.
 
-    Ignora pares con NaN. Los NaN deben estar en las mismas posiciones.
+    Ignora los pares no finitos. Los NaN deben estar en las mismas posiciones
+    en ambos arrays; si no, lanza ValueError. Si no hay pares válidos, las
+    métricas son NaN y n_validos = 0.
     """
-    raise NotImplementedError
+    o = _a_float(original)
+    r = _a_float(reconstruido)
+    if o.shape != r.shape:
+        raise ValueError(f"longitudes distintas: {o.shape} vs {r.shape}")
+    if not np.array_equal(np.isnan(o), np.isnan(r)):
+        raise ValueError("los NaN no están en las mismas posiciones")
+
+    validos = np.isfinite(o) & np.isfinite(r)
+    n = int(validos.sum())
+    if n == 0:
+        return {"mae": np.nan, "rmse": np.nan, "error_max": np.nan, "n_validos": 0}
+
+    d = r[validos] - o[validos]
+    return {
+        "mae": float(np.mean(np.abs(d))),
+        "rmse": float(np.sqrt(np.mean(d ** 2))),
+        "error_max": float(np.max(np.abs(d))),
+        "n_validos": n,
+    }
 
 
 def cuantizar_dataframe(df: pd.DataFrame, columnas: list, estrategia: str = "uniforme",
