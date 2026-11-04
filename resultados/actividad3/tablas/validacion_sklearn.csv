@@ -1,0 +1,52 @@
+caso,estrategia,bins,config_sklearn,bins_reales_sklearn,bins_reales_propio,limites_iguales,dif_max_limites,pct_codigos_iguales,causa,avisos_sklearn,nota_nan
+real_edad,uniforme,5,ajustada,5,5,sí,0.0,100.0,ninguna,,
+real_edad,uniforme,10,ajustada,10,10,sí,0.0,100.0,ninguna,,
+real_edad,uniforme,25,ajustada,25,25,sí,0.0,100.0,ninguna,,
+real_edad,uniforme,50,ajustada,50,50,sí,0.0,100.0,ninguna,,
+real_edad,cuantiles,5,ajustada,5,5,sí,0.0,100.0,ninguna,,
+real_edad,cuantiles,10,ajustada,10,10,sí,7.105427357601002e-15,100.0,ninguna,,
+real_edad,cuantiles,25,ajustada,25,25,sí,0.0,100.0,ninguna,,
+real_edad,cuantiles,50,ajustada,50,50,sí,7.105427357601002e-15,100.0,ninguna,,
+real_ingresos,uniforme,5,ajustada,5,5,sí,0.0,100.0,ninguna,,
+real_ingresos,uniforme,10,ajustada,10,10,sí,0.0,100.0,ninguna,,
+real_ingresos,uniforme,25,ajustada,25,25,sí,0.0,100.0,ninguna,,
+real_ingresos,uniforme,50,ajustada,50,50,sí,0.0,100.0,ninguna,,
+real_ingresos,cuantiles,5,ajustada,5,5,sí,0.0,100.0,ninguna,,
+real_ingresos,cuantiles,10,ajustada,10,10,sí,3.637978807091713e-12,100.0,ninguna,,
+real_ingresos,cuantiles,25,ajustada,25,25,sí,0.0,100.0,ninguna,,
+real_ingresos,cuantiles,50,ajustada,50,50,sí,7.275957614183426e-12,100.0,ninguna,,
+real_altura,uniforme,5,ajustada,5,5,sí,0.0,100.0,ninguna,,
+real_altura,uniforme,10,ajustada,10,10,sí,0.0,100.0,ninguna,,
+real_altura,uniforme,25,ajustada,25,25,sí,0.0,100.0,ninguna,,
+real_altura,uniforme,50,ajustada,50,50,sí,0.0,100.0,ninguna,,
+real_altura,cuantiles,5,ajustada,5,5,sí,0.0,100.0,ninguna,,
+real_altura,cuantiles,10,ajustada,10,10,sí,0.0,100.0,ninguna,,
+real_altura,cuantiles,25,ajustada,25,25,sí,0.0,100.0,ninguna,,
+real_altura,cuantiles,50,ajustada,50,50,sí,0.0,100.0,ninguna,,
+muchos_ceros,uniforme,5,ajustada,5,5,sí,0.0,100.0,ninguna,,
+muchos_ceros,uniforme,10,ajustada,10,10,sí,0.0,100.0,ninguna,,
+muchos_ceros,uniforme,25,ajustada,25,25,sí,0.0,100.0,ninguna,,
+muchos_ceros,uniforme,50,ajustada,50,50,sí,0.0,100.0,ninguna,,
+muchos_ceros,cuantiles,5,ajustada,2,2,sí,0.0,100.0,ninguna,"Bins whose width are too small (i.e., <= 1e-8) in feature 0 are removed. Consider decreasi",
+muchos_ceros,cuantiles,10,ajustada,4,4,sí,1.4564460748545116e-12,100.0,ninguna,"Bins whose width are too small (i.e., <= 1e-8) in feature 0 are removed. Consider decreasi",
+muchos_ceros,cuantiles,25,ajustada,8,8,sí,0.0,100.0,ninguna,"Bins whose width are too small (i.e., <= 1e-8) in feature 0 are removed. Consider decreasi",
+muchos_ceros,cuantiles,50,ajustada,16,16,sí,1.4564460748545116e-12,100.0,ninguna,"Bins whose width are too small (i.e., <= 1e-8) in feature 0 are removed. Consider decreasi",
+constante,uniforme,5,ajustada,1,1,no,,100.0,"columna constante: sklearn usa bordes [-inf, inf]; el módulo propio usa [v, v]",Feature 0 is constant and will be replaced with 0.,
+constante,uniforme,10,ajustada,1,1,no,,100.0,"columna constante: sklearn usa bordes [-inf, inf]; el módulo propio usa [v, v]",Feature 0 is constant and will be replaced with 0.,
+constante,uniforme,25,ajustada,1,1,no,,100.0,"columna constante: sklearn usa bordes [-inf, inf]; el módulo propio usa [v, v]",Feature 0 is constant and will be replaced with 0.,
+constante,uniforme,50,ajustada,1,1,no,,100.0,"columna constante: sklearn usa bordes [-inf, inf]; el módulo propio usa [v, v]",Feature 0 is constant and will be replaced with 0.,
+constante,cuantiles,5,ajustada,1,1,no,,100.0,"columna constante: sklearn usa bordes [-inf, inf]; el módulo propio usa [v, v]",Feature 0 is constant and will be replaced with 0.,
+constante,cuantiles,10,ajustada,1,1,no,,100.0,"columna constante: sklearn usa bordes [-inf, inf]; el módulo propio usa [v, v]",Feature 0 is constant and will be replaced with 0.,
+constante,cuantiles,25,ajustada,1,1,no,,100.0,"columna constante: sklearn usa bordes [-inf, inf]; el módulo propio usa [v, v]",Feature 0 is constant and will be replaced with 0.,
+constante,cuantiles,50,ajustada,1,1,no,,100.0,"columna constante: sklearn usa bordes [-inf, inf]; el módulo propio usa [v, v]",Feature 0 is constant and will be replaced with 0.,
+con_nan,uniforme,5,ajustada,5,5,sí,0.0,100.0,ninguna,,sklearn rechaza NaN (ValueError)
+con_nan,uniforme,10,ajustada,10,10,sí,0.0,100.0,ninguna,,sklearn rechaza NaN (ValueError)
+con_nan,uniforme,25,ajustada,25,25,sí,0.0,100.0,ninguna,,sklearn rechaza NaN (ValueError)
+con_nan,uniforme,50,ajustada,50,50,sí,0.0,100.0,ninguna,,sklearn rechaza NaN (ValueError)
+con_nan,cuantiles,5,ajustada,5,5,sí,0.0,100.0,ninguna,,sklearn rechaza NaN (ValueError)
+con_nan,cuantiles,10,ajustada,10,10,sí,7.105427357601002e-15,100.0,ninguna,,sklearn rechaza NaN (ValueError)
+con_nan,cuantiles,25,ajustada,25,25,sí,0.0,100.0,ninguna,,sklearn rechaza NaN (ValueError)
+con_nan,cuantiles,50,ajustada,50,50,sí,2.842170943040401e-14,100.0,ninguna,,sklearn rechaza NaN (ValueError)
+real_edad,cuantiles,10,por_defecto,10,10,no,2.789853905099811,98.2865,sklearn con parámetros por defecto: submuestreo y/o método de cuantil distinto,,
+real_ingresos,cuantiles,10,por_defecto,10,10,no,48683.47534402,98.856,sklearn con parámetros por defecto: submuestreo y/o método de cuantil distinto,,
+real_altura,cuantiles,10,por_defecto,10,10,no,8.944875085900819,99.1842,sklearn con parámetros por defecto: submuestreo y/o método de cuantil distinto,,
