@@ -4,3 +4,4 @@ __pycache__/
 .ipynb_checkpoints/
 data/*.parquet
 resultados/actividad3/datos_cuantizados/
+resultados/actividad3/_prueba/

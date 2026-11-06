@@ -153,23 +153,25 @@ def _calcular_representantes(validos: np.ndarray, limites: np.ndarray) -> dict:
 
     return {"punto_medio": punto_medio, "media": media, "mediana": mediana}
 
-
 def ajustar_cuantizador(x, estrategia: str = "uniforme", n_bins: int = 10,
                         columna: str | None = None) -> Cuantizador:
     """Ajusta límites y los tres representantes.
 
     Parámetros: x (lista, array o Series), estrategia (ESTRATEGIAS),
-    n_bins (entero >= 1), columna (nombre opcional).
+    n_bins (entero entre 1 y 32767), columna (nombre opcional).
     Retorna: Cuantizador con limites y representantes (punto_medio, media, mediana).
     Excluye NaN y +-inf del ajuste.
     Columna constante: 1 bin con limites = [v, v].
     Cuantiles: los límites repetidos se eliminan, así que n_bins_real puede ser
     menor que n_bins_solicitado.
-    Lanza ValueError si n_bins < 1, si la estrategia no existe o si no hay
-    valores finitos.
+    Lanza ValueError si n_bins < 1 o > 32767 (los códigos son int16), si la
+    estrategia no existe o si no hay valores finitos.
     """
     if isinstance(n_bins, bool) or not isinstance(n_bins, (int, np.integer)) or n_bins < 1:
         raise ValueError(f"n_bins debe ser un entero >= 1, se recibió {n_bins!r}")
+    # NUEVO: evita el desbordamiento silencioso de los códigos int16
+    if n_bins > np.iinfo(np.int16).max:
+        raise ValueError(f"n_bins no puede superar {np.iinfo(np.int16).max} (los códigos son int16)")
     if estrategia not in ESTRATEGIAS:
         raise ValueError(f"estrategia {estrategia!r} no válida; opciones: {ESTRATEGIAS}")
 
@@ -201,7 +203,6 @@ def ajustar_cuantizador(x, estrategia: str = "uniforme", n_bins: int = 10,
         columna=columna,
         n_ajuste=int(validos.size),
     )
-
 
 def transformar(x, modelo: Cuantizador, devolver_diagnostico: bool = False):
     """Asigna códigos int16. NaN -> -1.
