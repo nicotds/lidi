@@ -29,6 +29,14 @@ Convenciones fijadas
     intacto. Las funciones no modifican el DataFrame de entrada.
 14. Persistencia: JSON estricto (NaN -> null) con campo "version". Cargar un
     modelo no recalcula nada: límites y representantes se leen tal cual.
+15. n_bins admite como máximo 32767, porque los códigos son int16.
+
+Uso rápido
+----------
+>>> m = ajustar_cuantizador(x, "cuantiles", 10, columna="ingresos")
+>>> codigos = transformar(x, m)                    # int16; NaN -> -1
+>>> aprox = reconstruir(codigos, m, "mediana")     # NaN se conserva
+>>> guardar_modelo(m, "modelo.json"); m2 = cargar_modelo("modelo.json")
 """
 from __future__ import annotations
 
@@ -204,7 +212,7 @@ def ajustar_cuantizador(x, estrategia: str = "uniforme", n_bins: int = 10,
         n_ajuste=int(validos.size),
     )
 
-def transformar(x, modelo: Cuantizador, devolver_diagnostico: bool = False):
+def transformar(x, modelo: Cuantizador, devolver_diagnostico: bool = False) -> np.ndarray | tuple[np.ndarray, dict]:
     """Asigna códigos int16. NaN -> -1.
 
     Con devolver_diagnostico=True devuelve (codigos, {"fuera_rango": mascara,
@@ -285,7 +293,7 @@ def calcular_error(original, reconstruido) -> dict:
 # DataFrames (30/10)
 # ----------------------------------------------------------------------------
 def cuantizar_dataframe(df: pd.DataFrame, columnas: list, estrategia: str = "uniforme",
-                        n_bins: int = 10):
+                        n_bins: int = 10) -> tuple[pd.DataFrame, dict]:
     """Ajusta un cuantizador por columna y las sustituye por códigos int16.
 
     No modifica df. Retorna (df_codificado, {columna: Cuantizador}).
@@ -475,7 +483,7 @@ def cargar_modelos(ruta) -> dict:
 
 
 __all__ = [
-    "Cuantizador", "ESTRATEGIAS", "REPRESENTANTES",
+    "Cuantizador", "ESTRATEGIAS", "REPRESENTANTES", "VERSION_MODELO",
     "ajustar_cuantizador", "transformar", "reconstruir", "calcular_error",
     "cuantizar_dataframe", "reconstruir_dataframe",
     "comparar_estadisticas", "tabla_resultados",
