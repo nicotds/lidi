@@ -1,0 +1,38 @@
+# Configuración del benchmark de cuantización (Actividad 4).
+# Se congela el 19/11 (git tag benchmark-v1): desde entonces no se cambian métodos, bins ni semillas.
+semilla: 42
+
+particion:
+  frac_ajuste: 0.5        # ajuste con el 50 % de las filas, prueba con el otro 50 %
+  semilla: 42
+
+tiempos:
+  calentamiento: 1
+  repeticiones: 3         # se reporta la mediana
+
+medir_memoria: true       # pico con tracemalloc (solo asignaciones de NumPy/Python)
+
+bins: [5, 10, 25, 50, 100, 256]
+
+metodos:
+  propios: [uniforme, cuantiles]
+  representantes: [punto_medio, media, mediana]
+  sklearn: [uniform, quantile, kmeans]
+  controles: [float32, sin_cuantizar]
+
+kmeans_max_ajuste: null   # p. ej. 200000 si kmeans es inviable en el 5M (documentarlo)
+
+sinteticos:
+  n_filas: 1000000
+  pct_nan: 0.02
+  distribuciones: [normal, lognormal, uniforme, bimodal, normal_outliers, ceros]
+
+reales:
+  columnas: [edad, ingresos, altura]
+  datasets:
+    "1M": data/dataset_1M.parquet
+    "5M": data/dataset_5M.parquet
+
+# Métricas de distribución sobre una muestra fija de N filas (solo donde se indique)
+muestra_distribucion:
+  "5M": 200000

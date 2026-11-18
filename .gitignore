@@ -6,3 +6,5 @@ __pycache__/
 data/*.parquet
 resultados/actividad3/datos_cuantizados/
 resultados/actividad3/_prueba/
+resultados/actividad4/_piloto*/
+resultados/actividad4/evidencias/
