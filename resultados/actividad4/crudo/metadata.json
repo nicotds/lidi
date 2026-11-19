@@ -1,0 +1,81 @@
+{
+  "fecha": "2026-11-19T16:15:13",
+  "python": "3.12.0",
+  "numpy": "2.5.3",
+  "pandas": "2.3.3",
+  "scipy": "1.18.1",
+  "scikit_learn": "1.9.1",
+  "so": "Windows-11-10.0.22631-SP0",
+  "cpu": "Intel64 Family 6 Model 141 Stepping 1, GenuineIntel",
+  "nucleos": 12,
+  "ram_total_gb": 16.9,
+  "OMP_NUM_THREADS": "1",
+  "semilla": 42,
+  "config": {
+    "semilla": 42,
+    "particion": {
+      "frac_ajuste": 0.5,
+      "semilla": 42
+    },
+    "tiempos": {
+      "calentamiento": 1,
+      "repeticiones": 3
+    },
+    "medir_memoria": true,
+    "bins": [
+      5,
+      10,
+      25,
+      50,
+      100,
+      256
+    ],
+    "metodos": {
+      "propios": [
+        "uniforme",
+        "cuantiles"
+      ],
+      "representantes": [
+        "punto_medio",
+        "media",
+        "mediana"
+      ],
+      "sklearn": [
+        "uniform",
+        "quantile",
+        "kmeans"
+      ],
+      "controles": [
+        "float32",
+        "sin_cuantizar"
+      ]
+    },
+    "kmeans_max_ajuste": 200000,
+    "sinteticos": {
+      "n_filas": 1000000,
+      "pct_nan": 0.02,
+      "distribuciones": [
+        "normal",
+        "lognormal",
+        "uniforme",
+        "bimodal",
+        "normal_outliers",
+        "ceros"
+      ]
+    },
+    "reales": {
+      "columnas": [
+        "edad",
+        "ingresos",
+        "altura"
+      ],
+      "datasets": {
+        "1M": "data/dataset_1M.parquet",
+        "5M": "data/dataset_5M.parquet"
+      }
+    },
+    "muestra_distribucion": {
+      "5M": 200000
+    }
+  }
+}
