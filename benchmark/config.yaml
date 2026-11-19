@@ -20,7 +20,7 @@ metodos:
   sklearn: [uniform, quantile, kmeans]
   controles: [float32, sin_cuantizar]
 
-kmeans_max_ajuste: null   # p. ej. 200000 si kmeans es inviable en el 5M (documentarlo)
+kmeans_max_ajuste: 200000   # kmeans se ajusta con una muestra de 200 000 filas (documentado en el informe)
 
 sinteticos:
   n_filas: 1000000

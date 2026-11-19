@@ -81,3 +81,8 @@ Ranking por caso (1 = menor NRMSE) promediado por método, y frente de Pareto. S
 - Memoria medida solo con `tracemalloc`. Métricas de distribución sobre muestra en el 5M.
 - Datos sintéticos. `dist_hist` es exactamente 0 para uniforme con 50 bins porque su rejilla
   coincide con la del histograma (artefacto de la métrica).
+
+## Decisión sobre kmeans (19/11)
+kmeans_max_ajuste = 200000: kmeans se ajusta con una muestra fija de 200 000 filas (semilla 42)
+porque la estimación del piloto lo hacía inviable en el 5M. La codificación y la decodificación
+usan todas las filas. Esto favorece el tiempo de ajuste de kmeans y puede subir un poco su error.
